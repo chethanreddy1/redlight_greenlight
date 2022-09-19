@@ -6,11 +6,12 @@ import tensorflow_hub as hub
 model = hub.load("https://tfhub.dev/google/movenet/multipose/lightning/1")
 movenet = model.signatures['serving_default']
 
-
 def playsound(length):
 
     #play a sound for 'length' seconds
-    return None
+    print('playsound')
+
+
 
 
 def doll(facing):
@@ -42,22 +43,41 @@ def pose(image):
     return np.uint8(np.squeeze(np.multiply(coords, [image.shape[0],image.shape[1]])))
 
 
-def sortx(pose):
-
-    #input is 'pose' returned in function pose() return (n,17,2) array where 0th axis is sorted based on 
-    # average x axis value of corresponding body part coordinates
-    return pose
+def sortx(cords):
+    
+    #input is 'cords' returned in function pose() return (n,17,2) array where 0th axis is sorted based on 
+    # average x axis value of body part coordinates
+    srtdcrds=np.zeros(cords.shape)
+    xaxis=cords[:,:,1]
+    xaxis=np.sum(xaxis,axis=1)
+    xl=list(xaxis)
+    xl1=xl.copy()
+    xl.sort()
+    for i in range(len(xl)):
+        j=xl1.index(xl[i])
+        srtdcrds[i,:,:]=cords[j,:,:]
+    return srtdcrds
 
 
 def error(pfpose,fpose):
 
     #input is 'pose' returned in pose() return 1d array of size n where nth element is average 
     # distance between body parts of nth human
-    er=0
+    n=fpose.shape[0]
+    er=np.zeros(n)
+    for i in range(n):
+        c=fpose[i]
+        p=pfpose[i]
+        dist=np.power(c-p,2)
+        dist=np.sum(dist,axis=1)
+        dist=np.power(dist,0.5)
+        dist=np.sum(dist)
+        er[i]=dist
     return er
 
 
 def playerbar(playerstatus):
+
     #return 216x1536 image showing status of players visually
 
     bar=np.zeros((216,1536,3))
@@ -65,12 +85,14 @@ def playerbar(playerstatus):
 
 
 def hlightstatus(playerstatus,frame,fpose):
+
     image=frame.copy()
+    
     #highlight players red if player status is dead and green if alive
     #using coordinates from fpose on frame. resize final image to 864x1536
 
-    return cv2.resize(image,(1536,864))
 
+    return cv2.resize(image,(1536,864))
 
 
 
