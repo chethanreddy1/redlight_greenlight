@@ -18,6 +18,7 @@ fpose=pose(frame)
 nplayers=fpose.shape[0]
 playerstatus=['alive']*nplayers
 
+print(img[216:,384:,:].shape)
 img[216:,384:,:]=hlightstatus(playerstatus,frame,fpose)
 img[:216,384:,:]=playerbar(playerstatus)
 
@@ -35,7 +36,7 @@ while 'alive' in playerstatus:
     ff=True
     t=time.time()
 
-    while t-time.time>5:
+    while (t-time.time())>5:
         ret, frame = cap.read()
         if ff:
             pframe=frame
