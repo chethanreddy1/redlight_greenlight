@@ -6,38 +6,40 @@ import time
 
 from funcs import *
 
-img=np.zeros((1080,1920,3))
+time.sleep(3)
 
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
     print("cameraproblem")
     exit()
+
 ret, frame = cap.read()
 
 fpose=pose(frame)
 nplayers=fpose.shape[0]
 playerstatus=['alive']*nplayers
 
-print(img[216:,384:,:].shape)
-img[216:,384:,:]=hlightstatus(playerstatus,frame,fpose)
-img[:216,384:,:]=playerbar(playerstatus)
+
 
 while 'alive' in playerstatus:
-    img[:,:384,:]=doll('back')
-    cv2.imshow('main',img)
+
+    cv2.imshow('main1',doll('back'))
+
 
     length=random.randint(1,4)
     playsound(length)
+    cv2.imshow('main1',doll('front'))
 
-    img[:,:384,:]=doll('front')
-    cv2.imshow('main',img)
 
     # time.sleep(0.5)
     ff=True
-    t=time.time()
 
-    while (t-time.time())>5:
+
+    while True:
         ret, frame = cap.read()
+
+
+
         if ff:
             pframe=frame
             pfpose=pose(pframe)
@@ -48,15 +50,26 @@ while 'alive' in playerstatus:
             fpose=pose(frame)
             fpose=sortx(fpose)
             delta=error(pfpose,fpose)
-            threshold=0
-            for i in len(delta):
+            threshold=10000000000000000
+            for i in range(len(delta)):
                 if delta[i]>threshold:
                     playerstatus[i]=='dead'
-            img[:216,384:,:]=playerbar(playerstatus)
-            img[216:,384:,:]=hlightstatus(playerstatus,frame,fpose)
+                    print(i,' died')
+
+
+            cv2.imshow('main2',playerbar(playerstatus))
+
+
+            cv2.imshow('main3',hlightstatus(playerstatus,frame,fpose))
+
+            
+           
             pframe=frame
             pfpose=fpose
-            cv2.imshow('main',img)
+            if cv.waitKey(1) == ord('q'):
+                 break
+
+
 
 cap.release()
 cv.destroyAllWindows()    
