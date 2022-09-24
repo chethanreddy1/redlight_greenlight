@@ -1,25 +1,24 @@
-from asyncio import start_server
-from email.mime import image
-from re import I
+
+
 import tensorflow as tf
 import numpy as np
 import cv2
 import tensorflow_hub as hub
 from pydub import AudioSegment
 from pydub.playback import play
-
+import time
 
 model = hub.load("https://tfhub.dev/google/movenet/multipose/lightning/1")
 movenet = model.signatures['serving_default']
 
 
+
 def playsound(length):
-    song = AudioSegment.from_mp3("rg/rg.mp3")
+    song = AudioSegment.from_mp3("/home/chethan/redgreen/rg/rg.mp3")
     cr=song[:length*1000]
     print('started')
     play(cr)
     print('playsound')
-
 
 
 
@@ -28,9 +27,9 @@ def doll(facing):
     #return 1080x384 bgr image array of doll facing front if input facing is a string 'front' and back if 
     # facing is 'back'
     if facing=='front':
-        img=cv2.resize(cv2.imread('rg/dollfront.jpg'),(384,1080))
+        img=cv2.resize(cv2.imread('/home/chethan/redgreen/rg/dollfront.jpg'),(384,1080))
     else:
-        img=cv2.resize(cv2.imread('rg/dollback.jpg'),(384,1080))
+        img=cv2.resize(cv2.imread('/home/chethan/redgreen/rg/dollback.jpg'),(384,1080))
     
     return img
 
@@ -51,7 +50,7 @@ def pose(image):
     conf=keypoints[:,:,2]
     l=[]
     for i in range(len(conf)):
-        if np.sum(conf[i])<1.7:
+        if np.sum(conf[i])<5:
             l.append(i)
     coords=np.delete(coords,l,axis=0)
     coords=np.uint16(np.squeeze(np.multiply(coords, [image.shape[0],image.shape[1]])))
@@ -64,6 +63,7 @@ def sortx(cords):
     #input is 'cords' returned in function pose() return (n,17,2) array where 0th axis is sorted based on 
     # average x axis value of body part coordinates
     srtdcrds=np.zeros(cords.shape)
+    print(cords.shape)
     xaxis=cords[:,:,1]
     xaxis=np.sum(xaxis,axis=1)
     xl=list(xaxis)
@@ -107,6 +107,7 @@ def hlightstatus(playerstatus,frame,fpose):
     #highlight players red if player status is dead and green if alive
     #using coordinates from fpose on frame. resize final image to 864x1536
     image=np.copy(frame)
+    
     for i in range(fpose.shape[0]):
         for kp in fpose[i]:
             if playerstatus[i]=='alive':
@@ -114,7 +115,10 @@ def hlightstatus(playerstatus,frame,fpose):
             else:
                 cv2.circle(image, (int(kp[1]), int(kp[0])), 6, (0,0,255), -1)
 
-    return cv2.resize(image,(1536,864))
+    
+    # image=cv2.resize(image,(1536,864))
+ 
+    return image
  
 
 
